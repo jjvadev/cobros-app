@@ -30,7 +30,7 @@
             </tr>
             <tr v-if="usuariosFiltrados.length === 0">
               <td colspan="3" class="text-center text-muted">
-                No se encontraron clientes
+                No se encontraron clientess
               </td>
             </tr>
           </tbody>
