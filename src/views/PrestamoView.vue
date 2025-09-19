@@ -94,12 +94,12 @@
       </div>
 
       <!-- Estado geolocalización -->
-      <div class="mb-3 text-muted small">
-        <span v-if="latitud && longitud">
+      <div class="mb-3 small">
+        <span v-if="latitud && longitud" class="text-success">
           📡 Posición obtenida: ({{ latitud.toFixed(6) }}, {{ longitud.toFixed(6) }})
         </span>
-        <span v-else>
-          ⏳ Obteniendo ubicación...
+        <span v-else class="text-warning">
+          ⏳ Intentando obtener ubicación...
         </span>
       </div>
 
@@ -146,10 +146,13 @@ export default {
           },
           (err) => {
             console.warn("⚠️ No se pudo obtener ubicación:", err.message);
-          }
+            alert("No se pudo obtener ubicación: " + err.message);
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
       } else {
-        console.warn("⚠️ Geolocalización no soportada en este navegador");
+        console.warn("⚠️ Geolocalización no soportada");
+        alert("Geolocalización no soportada en este navegador.");
       }
     };
 
@@ -211,6 +214,7 @@ export default {
         return;
       }
 
+      // ruta del cliente
       const { data: rutaCliente } = await supabase
         .from("usuario_ruta")
         .select("id_ruta")
