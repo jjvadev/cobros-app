@@ -12,6 +12,7 @@
       />
     </div>
 
+    <!-- Tabla de clientes -->
     <div class="card shadow p-3">
       <div class="table-responsive">
         <table class="table table-striped table-sm">
@@ -20,17 +21,29 @@
               <th>Cédula</th>
               <th>Nombre</th>
               <th>Ruta</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="usuario in usuariosFiltrados" :key="usuario.cedula + '-' + usuario.ruta">
+            <tr
+              v-for="usuario in usuariosFiltrados"
+              :key="usuario.cedula + '-' + usuario.ruta"
+            >
               <td>{{ usuario.cedula }}</td>
               <td>{{ usuario.nombre }}</td>
               <td>{{ usuario.ruta }}</td>
+              <td>
+                <button
+                  class="btn btn-sm btn-success"
+                  @click="irAPrestamo(usuario.cedula)"
+                >
+                  ➕ Nuevo Préstamo
+                </button>
+              </td>
             </tr>
             <tr v-if="usuariosFiltrados.length === 0">
-              <td colspan="3" class="text-center text-muted">
-                No se encontraron clientess
+              <td colspan="4" class="text-center text-muted">
+                No se encontraron clientes
               </td>
             </tr>
           </tbody>
@@ -44,14 +57,18 @@
 import { ref, onMounted, computed } from "vue";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/auth";
+import { useRouter } from "vue-router";
 
 export default {
   name: "ListaClientesView",
   setup() {
     const auth = useAuthStore();
+    const router = useRouter();
+
     const usuarios = ref([]);
     const busqueda = ref("");
 
+    // 🔎 Cargar solo clientes en las rutas del usuario logueado
     const fetchUsuarios = async () => {
       if (!auth.cedula) return;
 
@@ -83,7 +100,7 @@ export default {
         .select("cedula, nombre")
         .in("cedula", cedulas);
 
-      // 4. Roles de usuarios
+      // 4. Roles
       const { data: usuarioRoles } = await supabase
         .from("usuario_rol")
         .select("cedula, id_rol")
@@ -99,7 +116,7 @@ export default {
         .select("id_ruta, nombre_ruta")
         .in("id_ruta", rutasIds);
 
-      // 6. Solo clientes
+      // 6. Armar lista SOLO clientes
       usuarios.value = usuariosRutas
         .map((ur) => {
           const u = usuariosData.find((x) => x.cedula === ur.cedula);
@@ -117,7 +134,7 @@ export default {
         .filter((u) => u.rol === "Cliente"); // 👈 solo clientes
     };
 
-    // === Computed con búsqueda ===
+    // 🔎 Computed con búsqueda
     const usuariosFiltrados = computed(() => {
       if (!busqueda.value) return usuarios.value;
 
@@ -130,11 +147,14 @@ export default {
       );
     });
 
-    onMounted(() => {
-      fetchUsuarios();
-    });
+    // 👉 Redirigir a Prestamo
+    const irAPrestamo = (cedula) => {
+      router.push(`/prestamos/${cedula}`);
+    };
 
-    return { usuarios, busqueda, usuariosFiltrados };
+    onMounted(fetchUsuarios);
+
+    return { usuarios, busqueda, usuariosFiltrados, irAPrestamo };
   },
 };
 </script>

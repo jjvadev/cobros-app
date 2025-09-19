@@ -16,7 +16,13 @@ const routes = [
     name: 'ListaClientes',
     component: () => import('@/views/ListaClientesView.vue'),
     meta: { requiresAuth: true }
-  }
+  },
+  {
+  path: '/prestamos/:cedula',
+  name: 'Prestamo',
+  component: () => import('@/views/PrestamoView.vue'),
+  meta: { requiresAuth: true }
+}
 ]
 
 const router = createRouter({
