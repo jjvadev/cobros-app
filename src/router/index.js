@@ -1,27 +1,42 @@
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import LoginView from '@/views/LoginView.vue'
+import DashboardView from '@/views/DashboardView.vue'
+import ClientesView from '@/views/ClientesView.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const routes = [
+  { path: '/', redirect: '/login' },
+  { path: '/login', component: LoginView },
+  { path: '/dashboard', component: DashboardView, meta: { requiresAuth: true } },
+  { path: '/clientes', component: ClientesView, meta: { requiresAuth: true } },
+  { path: '/rutas', component: () => import('@/views/RutasView.vue'), meta: { requiresAuth: true } },
   {
-    path: '/',
-    name: 'home',
-    component: HomeView
-  },
-  {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: function () {
-      return import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-    }
+    path: '/lista-clientes',
+    name: 'ListaClientes',
+    component: () => import('@/views/ListaClientesView.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  history: createWebHistory(),
   routes
+})
+
+// 🔒 Protección de rutas
+router.beforeEach((to) => {
+  const auth = useAuthStore()
+
+  // Rehidratar sesión si hace falta
+  if (!auth.cedula) {
+    auth.restoreSession()
+  }
+
+  // Si requiere login y no está autenticado → redirigir
+  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    return { path: '/login' }
+  }
 })
 
 export default router
